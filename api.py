@@ -441,20 +441,7 @@ class CommentResource(Resource):
 		return  rows , 200
 
 # ######################## WILAYAH KERJA ZACK #########################
-# ################ Login Resource for take a Token ####################
-# # class LoginResource(Resource):
-# class LoginResource(Resource):
-# 	def post(self):
-# 		parser = reqparse.RequestParser()
-# 		parser.add_argument('secret', location='json', required = True)
-# 		args = parser.parse_args()
-# 		qry = SignUp.query.filter_by(secret=args['secret']).first()
-# 		if qry is None:
-# 			return {'status':'UNAUTHORIZED'}, 401
-# 		token = create_access_token(identity=qry.secret, expires_delta = datetime.timedelta(days=1))
-# 		return {'token':token}, 200
-###################### Start of Endpoint ##############################
-# Endpoints for Public
+
 api.add_resource(PublicResource,'/api/public/posts','/api/public/post/<int:id>')
 api.add_resource(UserResource, '/api/user/<int:id>','/api/signup',)
 api.add_resource(CommentResource, '/api/comment/<int:id>','/api/comment','/api/comment/delete/<int:id>')
