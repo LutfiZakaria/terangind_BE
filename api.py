@@ -122,7 +122,6 @@ class Comment(db.Model):
 ##################  CRUD Endpoint Public  #################
 
 class PublicResource(Resource):
-<<<<<<< HEAD
     posting_field = {
         "PostID" : fields.Integer,
         "Title" : fields.String,
@@ -240,24 +239,7 @@ class PublicResource(Resource):
     
     
 
-class UserResource(Resource):
-    user_field = {
-        "UserID" : fields.Integer,
-        "username" : fields.String,
-        "Email" : fields.String,
-        "Password" : fields.String,
-        "Status" : fields.String,
-        "CreatedAt" : fields.String,
-        "UpdatedAt" : fields.String,
-        }
 
-    def get(self,id=None):
-        if (id!= None):
-            qry=User.query.get(id)
-        else :
-            return {'status':'User not Found'}, 404
-        rows = marshal(qry, self.user_field)
-        return rows, 200
 
 
 
@@ -326,61 +308,6 @@ class UserResource(Resource):
 
 
 
-
-
-
-=======
-	posting_field = {
-		"PostID" : fields.Integer,
-		"Title" : fields.String,
-		"PostText" : fields.String,
-		"Url" : fields.String,
-		"Likes" : fields.Integer,
-		"Watch" : fields.Integer,
-		"CreatedAt" : fields.String,
-		"UpdatedAt" : fields.String,
-		"user_UserID" : fields.Integer
-	}
-	def get(self, id = None):
-		if(id != None):
-			qry = User.query.get(UserID = id)
-			if(qry == None):
-				return {'status': 'Post not found!'}, 404
-			ans = {
-				"page": 1,
-				"total_page": 1,
-				"per_page": 25,
-				"data": []
-			}
-
-			rows = marshal(qry, self.posting_field)
-			ans["data"] = rows
-			return ans, 200
-		
-		parser = reqparse.RequestParser()
-		parser.add_argument("p", type= int, location= 'args', default= 1)
-		parser.add_argument("rp", type= int, location= 'args', default= 25)
-		parser.add_argument("PostID",type= int, help= 'PostID must be an integer', location= 'args')
-		parser.add_argument("Likes",type= str, help= 'Likes must be an integer', location= 'args')
-		parser.add_argument("orderBy", help= 'invalid orderBy', location= 'args', choices=('PostID', 'Likes', 'CreatedAt', 'UpdatedAt'))
-		parser.add_argument("sort", help= 'invalid sort value', location= 'args', choices=('asc', 'desc'), default = 'asc')
-
-		args = parser.parse_args()
-
-		qry = Posting.query
-
-		if args['p'] == 1:
-			offset = 0
-		else:
-			offset = (args['p'] * args['rp']) - args['rp']
- 
-		if args["PostID"] != None:
-			qry = qry.filter_by(PostID = args["PostID"]) 
-		if args["Likes"] != None:
-			qry = qry.filter_by(Likes = args["Likes"])
-		
-		if args['orderBy'] != None:
->>>>>>> 66fe57bbb3909a32ad577cc88326c1ff0bbdc308
 
 			if args["orderBy"] == "Likes":
 				field_sort = Posting.Likes
