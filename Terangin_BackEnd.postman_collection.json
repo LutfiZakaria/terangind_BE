@@ -1,0 +1,350 @@
+{
+	"info": {
+		"_postman_id": "07c8994c-bfa6-48fc-8b58-86e32e6c21b2",
+		"name": "Terangin_BackEnd",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0_1 Get User by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/user/1",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"user",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "0_2 Sign Up",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\t{\n\t\t\"Username\" : \"Tria1\",\n\t\t\"Email\" : \"Tria2@gmail.com\",\n\t\t\"Password\" : \"123456\",\n\t\t\"Status\":\"Member\"\n\t\t}"
+				},
+				"url": {
+					"raw": "{{Host}}/api/signup",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "0_3 Delete User by ID",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/user/delete/4",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"user",
+						"delete",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "0_4 Update User by ID",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\t{\n\t\t\"Username\":\"\",\n\t\t\"Email\":\"\",\n\t\t\"Password\" : \"\",\n\t\t\"Status\":\"\"\n\t\t}"
+				},
+				"url": {
+					"raw": "{{Host}}/api/user/2",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"user",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "0_5 Login User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"Username\": \"jack\",\n    \"Password\": \"123456\"\n}"
+				},
+				"url": {
+					"raw": "{{Host}}/api/login",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "1_1 Get Posts All",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/public/posts",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"public",
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "1_1 Get Post by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/public/post/2",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"public",
+						"post",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2_1 Get Comment by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/comment/3",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"comment",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2_2 Post Comment",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/comment",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"comment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3_1 User Get Posts All",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDE2NzQwNDAsIm5iZiI6MTU0MTY3NDA0MCwianRpIjoiOThiMjhjYWQtODdiMC00Yzc4LWI4ZTItNDhmNTdiZTcyMTJhIiwiZXhwIjoxNTQxNzYwNDQwLCJpZGVudGl0eSI6MSwiZnJlc2giOmZhbHNlLCJ0eXBlIjoiYWNjZXNzIn0.h5QqGnNc4BebygIdzKP6GoxQ1YsLiytY9eMeENE3FGw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/users/posts",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3_2 User Get Post by ID",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDE2NzQwNDAsIm5iZiI6MTU0MTY3NDA0MCwianRpIjoiOThiMjhjYWQtODdiMC00Yzc4LWI4ZTItNDhmNTdiZTcyMTJhIiwiZXhwIjoxNTQxNzYwNDQwLCJpZGVudGl0eSI6MSwiZnJlc2giOmZhbHNlLCJ0eXBlIjoiYWNjZXNzIn0.h5QqGnNc4BebygIdzKP6GoxQ1YsLiytY9eMeENE3FGw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/public/post/2",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"public",
+						"post",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3_3 User Add Post",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDE2NzQwNDAsIm5iZiI6MTU0MTY3NDA0MCwianRpIjoiOThiMjhjYWQtODdiMC00Yzc4LWI4ZTItNDhmNTdiZTcyMTJhIiwiZXhwIjoxNTQxNzYwNDQwLCJpZGVudGl0eSI6MSwiZnJlc2giOmZhbHNlLCJ0eXBlIjoiYWNjZXNzIn0.h5QqGnNc4BebygIdzKP6GoxQ1YsLiytY9eMeENE3FGw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"Title\": \"TitleCoba00\",\n    \"PostText\": \"PostText00\",\n    \"Url\": \"Url00\"\n}"
+				},
+				"url": {
+					"raw": "{{Host}}/api/users/posts",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"posts"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

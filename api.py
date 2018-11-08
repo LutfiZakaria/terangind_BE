@@ -33,28 +33,28 @@ jwt = JWTManager(app)
 
 api = Api(app)
 
-#Wrapping untuk fungsi Super admin
-def admin_required(fn):
-	@wraps(fn)
-	def wrapper(*args, **kwargs):
-		verify_jwt_in_request()
-		claims = get_jwt_claims()
-		if claims['type'] != 'admin':
-			return {'status':'FORBIDDEN'}, 403, {'Content-Type': 'application/json'}
-		else:
-			return fn(*args, **kwargs)
-	return wrapper
-#Wrapping untuk fungsi user admin
-def user_required(fn):
-	@wraps(fn)
-	def wrapper(*args, **kwargs):
-		verify_jwt_in_request()
-		claims = get_jwt_claims()
-		if claims['type'] != 'user':
-			return {'status':'FORBIDDEN'}, 403, {'Content-Type': 'application/json'}
-		else:
-			return fn(*args, **kwargs)
-	return wrapper
+# #Wrapping untuk fungsi Super admin
+# def admin_required(fn):
+# 	@wraps(fn)
+# 	def wrapper(*args, **kwargs):
+# 		verify_jwt_in_request()
+# 		claims = get_jwt_claims()
+# 		if claims['type'] != 'admin':
+# 			return {'status':'FORBIDDEN'}, 403, {'Content-Type': 'application/json'}
+# 		else:
+# 			return fn(*args, **kwargs)
+# 	return wrapper
+# #Wrapping untuk fungsi user admin
+# def user_required(fn):
+# 	@wraps(fn)
+# 	def wrapper(*args, **kwargs):
+# 		verify_jwt_in_request()
+# 		claims = get_jwt_claims()
+# 		if claims['type'] != 'user':
+# 			return {'status':'FORBIDDEN'}, 403, {'Content-Type': 'application/json'}
+# 		else:
+# 			return fn(*args, **kwargs)
+# 	return wrapper
 
 #########################  MODEL DECLARATION #########################
 
@@ -116,6 +116,29 @@ class Comment(db.Model):
 	def __repr__(self):
 		return '<Comment %r>' % self.CommentID
 
+posting_field = {
+    "PostID" : fields.Integer,
+    "Title" : fields.String,
+    "PostText" : fields.String,
+    "Url" : fields.String,
+    "Likes" : fields.Integer,
+    "Watch" : fields.Integer,
+    "CreatedAt" : fields.String,
+    "UpdatedAt" : fields.String,
+    "user_UserID" : fields.Integer
+}
+
+comment_field = {
+    "CommentID" : fields.Integer,
+    "CommentText" : fields.String,
+    "UrlComm" : fields.String,
+    "Likes" : fields.Integer,
+    "Hoax" : fields.Integer,
+    "CreatedAt" : fields.String,
+    "UpdatedAt" : fields.String,
+    "user_UserID" : fields.Integer,
+    "posting_PostID" : fields.Integer
+}
 
 comment_field = {
 		"CommentID" : fields.Integer,
@@ -134,110 +157,223 @@ comment_field = {
 ##################  CRUD Endpoint Public  #################
 
 class PublicResource(Resource):
-	posting_field = {
-		"PostID" : fields.Integer,
-		"Title" : fields.String,
-		"PostText" : fields.String,
-		"Url" : fields.String,
-		"Likes" : fields.Integer,
-		"Watch" : fields.Integer,
-		"CreatedAt" : fields.String,
-		"UpdatedAt" : fields.String,
-		"user_UserID" : fields.Integer
-	}
+    ############### get posts and comments for public ##################
+    def get(self, id = None):
+        if(id != None):
+            qry = Posting.query.filter_by(PostID = id)
+            posts = marshal(qry.all(), posting_field)
 
-	############### get posts and comments for public ##################
+            qry = Comment.query.filter_by(posting_PostID = id)
+            comments = marshal(qry.all(), comment_field)
 
-	def get(self, id = None):
-		if(id != None):
-			qry = Posting.query.filter_by(PostID = id)
-			posts = marshal(qry.all(), self.posting_field)
+            if posts == []:
+                return {'status': 'Post not found!'}, 404
+            
+            else:
+                postComm = {
+                    "Post": posts,
+                    "Comment": comments
+                }
+                return postComm, 200
+        
+        parser = reqparse.RequestParser()
+        parser.add_argument("p", type= int, location= 'args', default= 1)
+        parser.add_argument("rp", type= int, location= 'args', default= 5)
+        parser.add_argument("PostID",type= int, help= 'PostID must be an integer', location= 'args')
+        parser.add_argument("Title",type= str, help= 'Title must be string type', location= 'args')
+        parser.add_argument("Likes",type= str, help= 'Likes must be an integer', location= 'args')
+        parser.add_argument("Watch",type= str, help= 'Watch must be string type', location= 'args')
+        parser.add_argument("user_UserID",type= int, help= 'user_UserID must be an integer', location= 'args')
+        parser.add_argument("orderBy", help= 'invalid orderBy', location= 'args', choices=('PostID', 'Title', 'Likes', 'Watch', 'CreatedAt', 'UpdatedAt', 'user_UserID'))
+        parser.add_argument("sort", help= 'invalid sort value', location= 'args', choices=('asc', 'desc'), default = 'asc')
 
-			qry = Comment.query.filter_by(posting_PostID = id)
-			comments = marshal(qry.all(),  comment_field)
+        args = parser.parse_args()
 
-			if posts == []:
-				return {'status': 'Post not found!'}, 404
-			
-			else:
-				postComm = {
-					"Post": posts,
-					"Comment": comments
-				}
-				return postComm, 200
-		
-		parser = reqparse.RequestParser()
-		parser.add_argument("p", type= int, location= 'args', default= 1)
-		parser.add_argument("rp", type= int, location= 'args', default= 5)
-		parser.add_argument("PostID",type= int, help= 'PostID must be an integer', location= 'args')
-		parser.add_argument("Title",type= str, help= 'Title must be string type', location= 'args')
-		parser.add_argument("Likes",type= str, help= 'Likes must be an integer', location= 'args')
-		parser.add_argument("Watch",type= str, help= 'Watch must be string type', location= 'args')
-		parser.add_argument("user_UserID",type= int, help= 'user_UserID must be an integer', location= 'args')
-		parser.add_argument("orderBy", help= 'invalid orderBy', location= 'args', choices=('PostID', 'Title', 'Likes', 'Watch', 'CreatedAt', 'UpdatedAt', 'user_UserID'))
-		parser.add_argument("sort", help= 'invalid sort value', location= 'args', choices=('asc', 'desc'), default = 'asc')
+        qry = Posting.query
 
-		args = parser.parse_args()
-
-		qry = Posting.query
-
-		if args['p'] == 1:
-			offset = 0
-		else:
-			offset = (args['p'] * args['rp']) - args['rp']
+        if args['p'] == 1:
+            offset = 0
+        else:
+            offset = (args['p'] * args['rp']) - args['rp']
  
-		if args["PostID"] != None:
-			qry = qry.filter_by(PostID = args["PostID"])
-		if args["Title"] != None:
-			qry = qry.filter_by(Title = args["Title"])
-		if args["Likes"] != None:
-			qry = qry.filter_by(Likes = args["Likes"])
-		if args["Watch"] != None:
-			qry = qry.filter_by(Watch = args["Watch"])
-		
-		if args['orderBy'] != None:
+        if args["PostID"] != None:
+            qry = qry.filter_by(PostID = args["PostID"])
+        if args["Title"] != None:
+            qry = qry.filter_by(Title = args["Title"])
+        if args["Likes"] != None:
+            qry = qry.filter_by(Likes = args["Likes"])
+        if args["Watch"] != None:
+            qry = qry.filter_by(Watch = args["Watch"])
+        
+        if args['orderBy'] != None:
 
-			if args["orderBy"] == "PostID":
-				field_sort = Posting.PostID
-			elif args["orderBy"] == "Title":
-				field_sort = Posting.Title
-			elif args["orderBy"] == "Likes":
-				field_sort = Posting.Likes
-			elif args["orderBy"] == "Watch":
-				field_sort = Posting.Watch
-			elif args["orderBy"] == "CreatedAt":
-				field_sort = Posting.CreatedAt
-			elif args["orderBy"] == "UpdatedAt":
-				field_sort = Posting.UpdatedAt
-			elif args["orderBy"] == "user_UserID":
-				field_sort = Posting.user_UserID
+            if args["orderBy"] == "PostID":
+                field_sort = Posting.PostID
+            elif args["orderBy"] == "Title":
+                field_sort = Posting.Title
+            elif args["orderBy"] == "Likes":
+                field_sort = Posting.Likes
+            elif args["orderBy"] == "Watch":
+                field_sort = Posting.Watch
+            elif args["orderBy"] == "CreatedAt":
+                field_sort = Posting.CreatedAt
+            elif args["orderBy"] == "UpdatedAt":
+                field_sort = Posting.UpdatedAt
+            elif args["orderBy"] == "user_UserID":
+                field_sort = Posting.user_UserID
 
-			if args['sort'] == 'desc':
-				qry = qry.order_by(desc(field_sort))
-			   
-			else:
-				qry = qry.order_by(field_sort)
+            if args['sort'] == 'desc':
+                qry = qry.order_by(desc(field_sort))
+               
+            else:
+                qry = qry.order_by(field_sort)
 
-		rows= qry.count()
-		qry =  qry.limit(args['rp']).offset(offset)
-		tp = math.ceil(rows / args['rp'])
-		
-		ans = {
-			"page": args['p'],
-			"total_page": tp,
-			"per_page": args['rp'],
-			"data": []
-		}
+        rows= qry.count()
+        qry =  qry.limit(args['rp']).offset(offset)
+        tp = math.ceil(rows / args['rp'])
+        
+        ans = {
+            "page": args['p'],
+            "total_page": tp,
+            "per_page": args['rp'],
+            "data": []
+        }
 
-		rows = []
-		for row in qry.all():
-			rows.append(marshal(row, self.posting_field))
+        rows = []
+        for row in qry.all():
+            rows.append(marshal(row, posting_field))
 
-		ans["data"] = rows
+        ans["data"] = rows
 
-		return ans, 200
-	
-	
+        return ans, 200
+    
+class PostResource(Resource):
+
+    @jwt_required
+    def get(self,id = None):
+        current_user = get_jwt_identity()
+
+        ans = {}
+        ans["status"] = "SUCCESS"
+        rows = []
+
+        if(id != None):
+            qry = Posting.query.filter_by(user_UserID = current_user, PostID = id).first()
+            posts = marshal(qry.all(), posting_field)
+            
+            qry = Comment.query.filter_by(posting_PostID = id)
+            comments = marshal(qry.all(), comment_field)
+
+            if posts == []:
+                return {'status': 'Post not found!'}, 404
+
+            else:
+                postComm = {
+                    "Post": posts,
+                    "Comment": comments
+                }
+                return postComm, 200
+
+        parser = reqparse.RequestParser()
+        parser.add_argument("p", type= int, location= 'args', default= 1)
+        parser.add_argument("rp", type= int, location= 'args', default= 5)
+        parser.add_argument("PostID",type= int, help= 'PostID must be an integer', location= 'args')
+        parser.add_argument("Title",type= str, help= 'Title must be string type', location= 'args')
+        parser.add_argument("Likes",type= str, help= 'Likes must be an integer', location= 'args')
+        parser.add_argument("Watch",type= str, help= 'Watch must be string type', location= 'args')
+        parser.add_argument("user_UserID",type= int, help= 'user_UserID must be an integer', location= 'args')
+        parser.add_argument("orderBy", help= 'invalid orderBy', location= 'args', choices=('PostID', 'Title', 'Likes', 'Watch', 'CreatedAt', 'UpdatedAt', 'user_UserID'))
+        parser.add_argument("sort", help= 'invalid sort value', location= 'args', choices=('asc', 'desc'), default = 'asc')
+
+        args = parser.parse_args()
+
+        qry = Posting.query.filter_by(user_UserID = current_user)
+
+        if args['p'] == 1:
+            offset = 0
+        else:
+            offset = (args['p'] * args['rp']) - args['rp']
+ 
+        if args["PostID"] != None:
+            qry = qry.filter_by(PostID = args["PostID"])
+        if args["Title"] != None:
+            qry = qry.filter_by(Title = args["Title"])
+        if args["Likes"] != None:
+            qry = qry.filter_by(Likes = args["Likes"])
+        if args["Watch"] != None:
+            qry = qry.filter_by(Watch = args["Watch"])
+        
+        if args['orderBy'] != None:
+
+            if args["orderBy"] == "PostID":
+                field_sort = Posting.PostID
+            elif args["orderBy"] == "Title":
+                field_sort = Posting.Title
+            elif args["orderBy"] == "Likes":
+                field_sort = Posting.Likes
+            elif args["orderBy"] == "Watch":
+                field_sort = Posting.Watch
+            elif args["orderBy"] == "CreatedAt":
+                field_sort = Posting.CreatedAt
+            elif args["orderBy"] == "UpdatedAt":
+                field_sort = Posting.UpdatedAt
+            elif args["orderBy"] == "user_UserID":
+                field_sort = Posting.user_UserID
+
+            if args['sort'] == 'desc':
+                qry = qry.order_by(desc(field_sort))
+               
+            else:
+                qry = qry.order_by(field_sort)
+
+        rows= qry.count()
+        qry =  qry.limit(args['rp']).offset(offset)
+        tp = math.ceil(rows / args['rp'])
+        
+        ans = {
+            "page": args['p'],
+            "total_page": tp,
+            "per_page": args['rp'],
+            "data": []
+        }
+
+        rows = []
+        for row in qry.all():
+            rows.append(marshal(row, posting_field))
+
+        ans["data"] = rows
+
+        return ans, 200
+
+    @jwt_required
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("Title",type= str, help= 'Title must be string type', location= 'json', required= True)
+        parser.add_argument("PostText",type= str, help= 'PostText must be string type', location= 'json', required= True)
+        parser.add_argument("Url",type= str, help= 'Url must be string type', location= 'json')
+        args = parser.parse_args()
+
+        current_user = get_jwt_identity()
+        
+        data = Posting(
+                Title = args["Title"],
+                PostText = args["PostText"],
+                Url = args["Url"],
+                user_UserID = current_user
+            )
+
+        db.session.add(data)
+        db.session.commit()
+
+        return {"status": "SUCCESS"}, 200
+
+    @jwt_required
+    def put(self):
+        pass
+
+    @jwt_required
+    def delete(self):
+        pass
 
 
 
@@ -252,12 +388,13 @@ class PublicResource(Resource):
 
 
 
+<<<<<<< HEAD
 
 
 
-
-
-
+=======
+			
+>>>>>>> 9deb4580ff97e766785ef7355c3f08c1bcf61b6f
 
 
 
@@ -446,14 +583,43 @@ api.add_resource(PublicResource,'/api/public/posts','/api/public/post/<int:id>')
 api.add_resource(UserResource, '/api/user/<int:id>','/api/signup',)
 api.add_resource(CommentResource, '/api/comment/<int:id>','/api/comment','/api/comment/delete/<int:id>')
 
+<<<<<<< HEAD
+=======
+# ######################## WILAYAH KERJA ZACK #########################
+# ################ Login Resource for take a Token ####################
+# # class LoginResource(Resource):
+class LoginResource(Resource):
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('Username', location= 'json', required= True)
+        parser.add_argument('Password', location= 'json', required= True)
+
+        args = parser.parse_args()
+
+        qry = User.query.filter_by( Username= args['Username'], Password= args['Password']).first()
+        
+        if qry == None:
+            return {"status": "UNAUTHORIZED"}, 401
+        
+        token = create_access_token(identity= qry.UserID, expires_delta = datetime.timedelta(days=1))
+
+        return {"token": token}, 200
+###################### Start of Endpoint ##############################
+# Endpoints for Public
+api.add_resource(PublicResource, '/api/public/posts', '/api/public/post/<int:id>' )
+api.add_resource(PostResource, '/api/users/posts', '/api/users/post/<int:id>')
+api.add_resource(UserResource, '/api/user/<int:id>','/api/signup','/api/user/delete/<int:id>')
+api.add_resource(LoginResource, '/api/login')
+>>>>>>> 9deb4580ff97e766785ef7355c3f08c1bcf61b6f
 ############ Finish of Endpoint ##########################################
 
-# ########### Handling override Message for consistently ##############
-# @jwt.expired_token_loader
-# def my_expired_token_callback():
-# 	return json.dumps({"message":"EXPIRED TOKEN"})\
-# 	,401 \
-# 	,{'Content-Type': 'application/json'}
+########### Handling override Message for consistently ##############
+@jwt.expired_token_loader
+def my_expired_token_callback():
+	return json.dumps({"message":"EXPIRED TOKEN"})\
+	,401 \
+	,{'Content-Type': 'application/json'}
 
 # # ###################### Handling Userclaim in Payload ###################
 # @jwt.user_claims_loader
@@ -465,6 +631,12 @@ api.add_resource(CommentResource, '/api/comment/<int:id>','/api/comment','/api/c
 # @jwt.unauthorized_loader
 # def unathorized_message(error_string):
 # 	return json.dumps({'message': error_string}), 401, {'Content-Type': 'application/json'}
+
+# @jwt.user_claims_loader
+# def add_claim(identity):
+#     data = User.query.get(identity)
+#     return { "type": data.type }
+
 
 # # if __name__ == '__main__':
 # # 	try:
