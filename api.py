@@ -208,58 +208,6 @@ class PublicResource(Resource):
 			return ans, 200
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class UserResource(Resource):
 	user_field = {
 		"UserID" : fields.Integer,
@@ -328,7 +276,7 @@ class UserResource(Resource):
 		rows = marshal(qry,self.user_field)
 		return  rows , 200
 
-
+class CommentResource(Resource):
 
 
 
