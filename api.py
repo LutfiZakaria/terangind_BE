@@ -38,6 +38,7 @@ class User(db.Model):
 	Username = db.Column(db.String(255), unique= True, nullable= False)
 	Email = db.Column(db.String(255), unique= True, nullable= False)
 	Password = db.Column(db.String(255), nullable= False)
+	UrlPict = db.Column(db.String(255), default="https://pixabay.com/en/blank-profile-picture-mystery-man-973460/")
 	Status = db.Column(db.Integer, default=3)
 	CreatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
 	UpdatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
@@ -81,6 +82,7 @@ user_field = {
 	"Username" : fields.String,
 	"Email" : fields.String,
 	"Password" : fields.String,
+	"UrlPict" : fields.String,
 	"Status" : fields.String,
 	"CreatedAt" : fields.String,
 	"UpdatedAt" : fields.String,
@@ -420,7 +422,9 @@ class UserResource(Resource):
 		parser = reqparse.RequestParser()
 		parser.add_argument('Username', type=str, location = 'json',help= 'Username can\'t null and must be string' )
 		parser.add_argument('Email', type=str, location = 'json', help= 'Email can\'t null and must be string')
-		parser.add_argument('Password', type=str, location = 'json', help= 'Email can\'t null and must be string')
+		parser.add_argument('Password', type=str, location = 'json', help= 'Password can\'t null and must be string')
+		parser.add_argument('UrlPict', type=str, location = 'json')
+
 		args = parser.parse_args()
 
 		if args['Username'] != None:
@@ -429,6 +433,8 @@ class UserResource(Resource):
 			data.Email = args['Email']
 		if args['Password'] != None:
 			data.Password = args['Password']
+		if args['UrlPict'] != None:
+			data.UrlPict = args['UrlPict']
 		
 		# Time stamp untuk Update
 		data.UpdatedAt= db.func.current_timestamp()
@@ -540,9 +546,10 @@ class RegisterResource(Resource):
 		parser = reqparse.RequestParser()
 		parser.add_argument('Username', type=str, location = 'json',help= 'Username can\'t null and must be string', required = True)
 		parser.add_argument('Email', type=str, location = 'json', help= 'Email can\'t null and must be string',required = True)
-		parser.add_argument('Password', type=str, location = 'json', help= 'Email can\'t null and must be string', required = True)
+		parser.add_argument('Password', type=str, location = 'json', help= 'Password can\'t null and must be string', required = True)
+		parser.add_argument('UrlPict', type=str, location = 'json')		
 		args = parser.parse_args()
-		data = User(Username = args['Username'], Email = args['Email'], Password = args['Password'])
+		data = User(Username = args['Username'], Email = args['Email'], Password = args['Password'], UrlPict = args['UrlPict'])
 		
 		db.session.add(data)
 		db.session.commit()
