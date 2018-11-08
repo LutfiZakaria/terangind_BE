@@ -9,6 +9,7 @@ instance/*
 
 # migrations
 migrations
+migrations_local
 
 ### Flask.Python Stack ###
 # Byte-compiled / optimized / DLL files

@@ -1,0 +1,546 @@
+{
+	"info": {
+		"_postman_id": "07c8994c-bfa6-48fc-8b58-86e32e6c21b2",
+		"name": "Terangin_BackEnd",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0_0 User Register",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"Username\": \"jackiechaan\",\n    \"Email\": \"jackiechan@ofalltrades.net\",\n    \"Password\": \"123456\",\n    \"Status\": \"Member\",\n    \"CreatedAt\": \"0000-00-00 00:00:00\",\n    \"UpdatedAt\": \"2018-11-08 16:50:39\"\n}"
+				},
+				"url": {
+					"raw": "{{Host}}/api/signup",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "0_1 Login User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"Username\": \"jackiechann\",\n    \"Password\": \"123456\"\n}"
+				},
+				"url": {
+					"raw": "{{Host}}/api/login",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "1_1 Public Get Posts All",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/public/posts",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"public",
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "1_1 Public Get Post & Comments by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/public/post/2",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"public",
+						"post",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2_1 User Get Posts All (auth)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/users/posts",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2_2 User Get Post by ID (auth)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/users/post/3",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"post",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2_3 User Add Post (auth)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDE2OTY1MjcsIm5iZiI6MTU0MTY5NjUyNywianRpIjoiZTk3MzFlM2EtYTgxMC00YTdkLWI2MjItMGE5Yzc0YmU1ZTlmIiwiZXhwIjoxNTQxNzgyOTI3LCJpZGVudGl0eSI6MTIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyJ9.GEzjZXzwiK16tkaPG7MhhUHaIk1e9vQ2ZrMfjZCaE0I",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"Title\": \"TitleCobaLagiTerakhirNi\",\n    \"PostText\": \"PostTextLagiLagiLagu\",\n    \"Url\": \"UrlAdaLagiNi\"\n}"
+				},
+				"url": {
+					"raw": "{{Host}}/api/users/posts",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2_4 User Update Post by ID (auth)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n        \"Title\": \"TitleCobaSekali\",\n        \"PostText\": \"PostTextLagiNi\",\n        \"Url\": \"Url512\"\n    }"
+				},
+				"url": {
+					"raw": "{{Host}}/api/users/post/10",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"post",
+						"10"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2_5 User Delete Post by ID (auth)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{Token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/users/post/2",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"post",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3_1 Get User All",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/users",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3_2 Get User by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/user/1",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"user",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3_3 Delete User by ID (auth, self)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDE2OTkyMTQsIm5iZiI6MTU0MTY5OTIxNCwianRpIjoiMWEyZGQ0MTMtMjcxNi00NTU2LWFhMzYtZGUwMmFmOTVlNDJmIiwiZXhwIjoxNTQxNzg1NjE0LCJpZGVudGl0eSI6MTIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyJ9.ILNcyNQz9zobBquBh9DxL7KCn9Pai4nwZ-LHMM8WykA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "{{Host}}/api/user/12",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"user",
+						"12"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3_4 Update User by ID (auth,self)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDE2OTkyMTQsIm5iZiI6MTU0MTY5OTIxNCwianRpIjoiMWEyZGQ0MTMtMjcxNi00NTU2LWFhMzYtZGUwMmFmOTVlNDJmIiwiZXhwIjoxNTQxNzg1NjE0LCJpZGVudGl0eSI6MTIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyJ9.ILNcyNQz9zobBquBh9DxL7KCn9Pai4nwZ-LHMM8WykA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\t{\n\t\t\"Username\":\"jackiechan\",\n\t\t\"Email\": \"jackie@ofalltrades.net\",\n\t\t\"Password\" : \"123456\"\n\t\t}"
+				},
+				"url": {
+					"raw": "{{Host}}/api/user/12",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"user",
+						"12"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4_1 Get Comment by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/comment/11",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"comment",
+						"11"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4_2 Post Comment (auth)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDE2OTc2NjEsIm5iZiI6MTU0MTY5NzY2MSwianRpIjoiMTE0ZTIzZTgtODQwZS00OTNhLTg1ZmUtOTg3ZGRiZmQwNDlkIiwiZXhwIjoxNTQxNzg0MDYxLCJpZGVudGl0eSI6MTIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyJ9.MLKePh_fMc3-7zqn8QVPnseLhBGRGMFAgD5_VBJpLtg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"CommentText\": \"CommentTextX\",\n    \"UrlComm\": \"UrlCommX\",\n    \"Hoax\": 3,\n    \"posting_PostID\": 3\n}"
+				},
+				"url": {
+					"raw": "{{Host}}/api/comment",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"comment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4_3 Delete Comment (auth, self)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDE2OTc2NjEsIm5iZiI6MTU0MTY5NzY2MSwianRpIjoiMTE0ZTIzZTgtODQwZS00OTNhLTg1ZmUtOTg3ZGRiZmQwNDlkIiwiZXhwIjoxNTQxNzg0MDYxLCJpZGVudGl0eSI6MTIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyJ9.MLKePh_fMc3-7zqn8QVPnseLhBGRGMFAgD5_VBJpLtg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{Host}}/api/comment/15",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"comment",
+						"15"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4_4 Update Comment (auth, self)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDE2OTc2NjEsIm5iZiI6MTU0MTY5NzY2MSwianRpIjoiMTE0ZTIzZTgtODQwZS00OTNhLTg1ZmUtOTg3ZGRiZmQwNDlkIiwiZXhwIjoxNTQxNzg0MDYxLCJpZGVudGl0eSI6MTIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyJ9.MLKePh_fMc3-7zqn8QVPnseLhBGRGMFAgD5_VBJpLtg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"CommentText\": \"CommentText16\",\n    \"UrlComm\": \"UrlComm16\",\n    \"Hoax\": 1\n}"
+				},
+				"url": {
+					"raw": "{{Host}}/api/comment/16",
+					"host": [
+						"{{Host}}"
+					],
+					"path": [
+						"api",
+						"comment",
+						"16"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
