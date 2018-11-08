@@ -19,8 +19,8 @@ Base = declarative_base()
 
 app = Flask(__name__)
 # CORS(app, resources={r"*": {"origin" : "*"}})
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:terangin123@terangin.cldtouwshewk.ap-southeast-1.rds.amazonaws.com:3306/terangin'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://username:password@127.0.0.1/terangin_baru'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:terangin123@terangin.cldtouwshewk.ap-southeast-1.rds.amazonaws.com:3306/terangin'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://username:password@127.0.0.1/terangin_baru'
 app.config['JWT_SECRET_KEY'] = 'terangin-secret-key'
 
 
