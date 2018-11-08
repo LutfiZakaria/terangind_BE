@@ -21,7 +21,6 @@ Base = declarative_base()
 
 app = Flask(__name__)
 # CORS(app, resources={r"*": {"origin" : "*"}})
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://username:password@127.0.0.1/terangin_BE'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:terangin123@terangin.cldtouwshewk.ap-southeast-1.rds.amazonaws.com:3306/terangin'
 app.config['JWT_SECRET_KEY'] = 'terangin-secret-key'
 
@@ -34,6 +33,7 @@ jwt = JWTManager(app)
 
 api = Api(app)
 
+#Wrapping untuk fungsi Super admin
 def admin_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -44,7 +44,7 @@ def admin_required(fn):
         else:
             return fn(*args, **kwargs)
     return wrapper
-
+#Wrapping untuk fungsi user admin
 def user_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -55,7 +55,6 @@ def user_required(fn):
         else:
             return fn(*args, **kwargs)
     return wrapper
-
 
 #########################  MODEL DECLARATION #########################
 
@@ -84,34 +83,36 @@ class User(db.Model):
     UpdatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
     postings = db.relationship('Posting', backref='person', lazy=True)
     comments = db.relationship('Comment', backref='person', lazy=True)
-
     def __repr__(self):
         return '<User %r>' % self.UserID
 
 class Posting(db.Model):
     PostID = db.Column(db.Integer, primary_key = True)
+    Title = db.Column(db.String(255), nullable=False)
     PostText = db.Column(db.Text, nullable = False)
+    Url = db.Column(db.String(255))
     Likes = db.Column(db.Integer, default = 0)
+    Watch = db.Column(db.Integer, default = 0)
     CreatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
     UpdatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
     # UserPost = db.relationship('User', secondary=UserPost, lazy='subquery', backref=db.backref('postings', lazy=True))
     user_UserID = db.Column(db.Integer, db.ForeignKey('user.UserID'), nullable=False)
-
     def __repr__(self):
         return '<Posting %r>' % self.PostID
 
 class Comment(db.Model):
     CommentID = db.Column(db.Integer, primary_key = True)
     CommentText = db.Column(db.Text, nullable = False)
+    UrlComm = db.Column(db.String(255))
     Likes = db.Column(db.Integer, default = 0)
+    # Column Hoax terdapat 1 = Yes, 2 = No, 3 = Don't Know
+    Hoax = db.Column(db.Integer, default =3)
     CreatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
     UpdatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
     # UserCom = db.relationship('User', secondary=UserCom, lazy='subquery', backref=db.backref('comments', lazy=True))
     # PostCom = db.relationship('Post', secondary=PostCom, lazy='subquery', backref=db.backref('comments', lazy=True))
     user_UserID = db.Column(db.Integer, db.ForeignKey('user.UserID'), nullable=False)
     posting_PostID = db.Column(db.Integer, db.ForeignKey('posting.PostID'), nullable=False)
-
-
     def __repr__(self):
         return '<Comment %r>' % self.CommentID
 
@@ -121,13 +122,15 @@ class Comment(db.Model):
 class PublicResource(Resource):
     posting_field = {
         "PostID" : fields.Integer,
+        "Title" : fields.String,
         "PostText" : fields.String,
+        "Url" : fields.String,
         "Likes" : fields.Integer,
+        "Watch" : fields.Integer,
         "CreatedAt" : fields.String,
         "UpdatedAt" : fields.String,
         "user_UserID" : fields.Integer
     }
-
     def get(self, id = None):
         if(id != None):
             qry = User.query.get(UserID = id)
@@ -202,8 +205,24 @@ class PublicResource(Resource):
 
             return ans, 200
 
+class UserResource(Resource):
+    user_field = {
+        "UserID" : fields.Integer,
+        "username" : fields.String,
+        "Email" : fields.String,
+        "Password" : fields.String,
+        "Status" : fields.String,
+        "CreatedAt" : fields.String,
+        "UpdatedAt" : fields.String,
+        }
 
-
+    def get(self,id=None):
+        if (id!= None):
+            qry=User.query.get(id)
+        else :
+            return {'status':'User not Found'}, 404
+        rows = marshal(qry, self.user_field)
+        return rows, 200
 
 
 
@@ -356,14 +375,9 @@ class PublicResource(Resource):
 # 		token = create_access_token(identity=qry.secret, expires_delta = datetime.timedelta(days=1))
 # 		return {'token':token}, 200
 ###################### Start of Endpoint ##############################
-
-
-
-
-
 # Endpoints for Public
 api.add_resource(PublicResource, '/api/public/posts', '/api/public/post/<int:id>' )
-
+api.add_resource(UserResource, '/api/user/<int:id>')
 ############ Finish of Endpoint ##########################################
 
 # ########### Handling override Message for consistently ##############
