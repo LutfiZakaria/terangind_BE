@@ -119,6 +119,8 @@ class Comment(db.Model):
 
 #########################  CRUD  #########################
 
+##################  CRUD Endpoint Public  #################
+
 class PublicResource(Resource):
 	posting_field = {
 		"PostID" : fields.Integer,
@@ -131,48 +133,28 @@ class PublicResource(Resource):
 		"UpdatedAt" : fields.String,
 		"user_UserID" : fields.Integer
 	}
-
-	comment_field = {
-		"CommentID" : fields.Integer,
-		"CommentText" : fields.String,
-		"UrlComm" : fields.String,
-		"Likes" : fields.Integer,
-		"Hoax" : fields.Integer,
-		"CreatedAt" : fields.String,
-		"UpdatedAt" : fields.String,
-		"user_UserID" : fields.Integer,
-		"posting_PostID" : fields.Integer
-	}
-
-	############### get posts and comments for public ##################
-
 	def get(self, id = None):
 		if(id != None):
-			qry = Posting.query.filter_by(PostID = id)
-			posts = marshal(qry.all(), self.posting_field)
-
-			qry = Comment.query.filter_by(posting_PostID = id)
-			comments = marshal(qry.all(), self.comment_field)
-
-			if posts == []:
+			qry = User.query.get(UserID = id)
+			if(qry == None):
 				return {'status': 'Post not found!'}, 404
-			
-			else:
-				postComm = {
-					"Post": posts,
-					"Comment": comments
-				}
-				return postComm, 200
+			ans = {
+				"page": 1,
+				"total_page": 1,
+				"per_page": 25,
+				"data": []
+			}
+
+			rows = marshal(qry, self.posting_field)
+			ans["data"] = rows
+			return ans, 200
 		
 		parser = reqparse.RequestParser()
 		parser.add_argument("p", type= int, location= 'args', default= 1)
-		parser.add_argument("rp", type= int, location= 'args', default= 5)
+		parser.add_argument("rp", type= int, location= 'args', default= 25)
 		parser.add_argument("PostID",type= int, help= 'PostID must be an integer', location= 'args')
-		parser.add_argument("Title",type= str, help= 'Title must be string type', location= 'args')
 		parser.add_argument("Likes",type= str, help= 'Likes must be an integer', location= 'args')
-		parser.add_argument("Watch",type= str, help= 'Watch must be string type', location= 'args')
-		parser.add_argument("user_UserID",type= int, help= 'user_UserID must be an integer', location= 'args')
-		parser.add_argument("orderBy", help= 'invalid orderBy', location= 'args', choices=('PostID', 'Title', 'Likes', 'Watch', 'CreatedAt', 'UpdatedAt', 'user_UserID'))
+		parser.add_argument("orderBy", help= 'invalid orderBy', location= 'args', choices=('PostID', 'Likes', 'CreatedAt', 'UpdatedAt'))
 		parser.add_argument("sort", help= 'invalid sort value', location= 'args', choices=('asc', 'desc'), default = 'asc')
 
 		args = parser.parse_args()
@@ -185,30 +167,20 @@ class PublicResource(Resource):
 			offset = (args['p'] * args['rp']) - args['rp']
  
 		if args["PostID"] != None:
-			qry = qry.filter_by(PostID = args["PostID"])
-		if args["Title"] != None:
-			qry = qry.filter_by(Title = args["Title"])
+			qry = qry.filter_by(PostID = args["PostID"]) 
 		if args["Likes"] != None:
 			qry = qry.filter_by(Likes = args["Likes"])
-		if args["Watch"] != None:
-			qry = qry.filter_by(Watch = args["Watch"])
 		
 		if args['orderBy'] != None:
 
-			if args["orderBy"] == "PostID":
-				field_sort = Posting.PostID
-			elif args["orderBy"] == "Title":
-				field_sort = Posting.Title
-			elif args["orderBy"] == "Likes":
+			if args["orderBy"] == "Likes":
 				field_sort = Posting.Likes
-			elif args["orderBy"] == "Watch":
-				field_sort = Posting.Watch
+			elif args["orderBy"] == "category":
+				field_sort = Posting.category
 			elif args["orderBy"] == "CreatedAt":
 				field_sort = Posting.CreatedAt
 			elif args["orderBy"] == "UpdatedAt":
 				field_sort = Posting.UpdatedAt
-			elif args["orderBy"] == "user_UserID":
-				field_sort = Posting.user_UserID
 
 			if args['sort'] == 'desc':
 				qry = qry.order_by(desc(field_sort))
@@ -216,65 +188,24 @@ class PublicResource(Resource):
 			else:
 				qry = qry.order_by(field_sort)
 
-		rows= qry.count()
-		qry =  qry.limit(args['rp']).offset(offset)
-		tp = math.ceil(rows / args['rp'])
-		
-		ans = {
-			"page": args['p'],
-			"total_page": tp,
-			"per_page": args['rp'],
-			"data": []
-		}
+			rows= qry.count()
+			qry =  qry.limit(args['rp']).offset(offset)
+			tp = math.ceil(rows / args['rp'])
+			
+			ans = {
+				"page": args['p'],
+				"total_page": tp,
+				"per_page": args['rp'],
+				"data": []
+			}
 
-		rows = []
-		for row in qry.all():
-			rows.append(marshal(row, self.posting_field))
-		ans["data"] = rows
-		return ans, 200
+			rows = []
+			for row in qry.all():
+				rows.append(marshal(row, self.posting_field))
 
-class UserResource(Resource):
-	user_field = {
-		"UserID" : fields.Integer,
-		"username" : fields.String,
-		"Email" : fields.String,
-		"Password" : fields.String,
-		"Status" : fields.String,
-		"CreatedAt" : fields.String,
-		"UpdatedAt" : fields.String,
-		}
+			ans["data"] = rows
 
-	def get(self,id=None):
-		if (id!= None):
-			qry=User.query.get(id)
-		else :
-			return {'status':'User not Found'}, 404
-		rows = marshal(qry, self.user_field)
-		return rows, 200
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+			return ans, 200
 
 
 
@@ -396,12 +327,6 @@ class UserResource(Resource):
 		db.session.commit()
 		rows = marshal(qry,self.user_field)
 		return  rows , 200
-
-
-
-
-
-
 
 
 
