@@ -19,7 +19,8 @@ Base = declarative_base()
 
 app = Flask(__name__)
 # CORS(app, resources={r"*": {"origin" : "*"}})
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:terangin123@terangin.cldtouwshewk.ap-southeast-1.rds.amazonaws.com:3306/terangin'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:terangin123@terangin.cldtouwshewk.ap-southeast-1.rds.amazonaws.com:3306/terangin'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://username:password@127.0.0.1/terangin_baru'
 app.config['JWT_SECRET_KEY'] = 'terangin-secret-key'
 
 
@@ -37,7 +38,7 @@ class User(db.Model):
 	Username = db.Column(db.String(255), unique= True, nullable= False)
 	Email = db.Column(db.String(255), unique= True, nullable= False)
 	Password = db.Column(db.String(255), nullable= False)
-	Status = db.Column(db.String(50))
+	Status = db.Column(db.Integer, default=3)
 	CreatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
 	UpdatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
 	postings = db.relationship('Posting', backref='person', lazy=True)
@@ -55,7 +56,7 @@ class Posting(db.Model):
 	CreatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
 	UpdatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
 	# UserPost = db.relationship('User', secondary=UserPost, lazy='subquery', backref=db.backref('postings', lazy=True))
-	user_UserID = db.Column(db.Integer, db.ForeignKey('user.UserID'), nullable=False)
+	user_UserID = db.Column(db.Integer, db.ForeignKey('user.UserID', ondelete='CASCADE'), nullable=False)
 	def __repr__(self):
 		return '<Posting %r>' % self.PostID
 
@@ -70,10 +71,20 @@ class Comment(db.Model):
 	UpdatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
 	# UserCom = db.relationship('User', secondary=UserCom, lazy='subquery', backref=db.backref('comments', lazy=True))
 	# PostCom = db.relationship('Post', secondary=PostCom, lazy='subquery', backref=db.backref('comments', lazy=True))
-	user_UserID = db.Column(db.Integer, db.ForeignKey('user.UserID'), nullable=False)
-	posting_PostID = db.Column(db.Integer, db.ForeignKey('posting.PostID'), nullable=False)
+	posting_PostID = db.Column(db.Integer, db.ForeignKey('posting.PostID', ondelete='CASCADE'), nullable=False)
+	user_UserID = db.Column(db.Integer, db.ForeignKey('user.UserID', ondelete='CASCADE'), nullable=False)
 	def __repr__(self):
 		return '<Comment %r>' % self.CommentID
+
+user_field = {
+	"UserID" : fields.Integer,
+	"Username" : fields.String,
+	"Email" : fields.String,
+	"Password" : fields.String,
+	"Status" : fields.String,
+	"CreatedAt" : fields.String,
+	"UpdatedAt" : fields.String,
+}
 
 posting_field = {
 	"PostID" : fields.Integer,
@@ -99,31 +110,19 @@ comment_field = {
 	"posting_PostID" : fields.Integer
 }
 
-comment_field = {
-		"CommentID" : fields.Integer,
-		"CommentText" : fields.String,
-		"UrlComm" : fields.String,
-		"Likes" : fields.Integer,
-		"Hoax" : fields.Integer,
-		"CreatedAt" : fields.String,
-		"UpdatedAt" : fields.String,
-		"user_UserID" : fields.Integer,
-		"posting_PostID" : fields.Integer
-	}
-
 #########################  CRUD  #########################
 class PublicResource(Resource):
 	############### get posts and comments for public ##################
 	def get(self, id = None):
 		if(id != None):
 			qry = Posting.query.filter_by(PostID = id)
-			posts = marshal(qry.all(), posting_field)
+			posts = marshal(qry.first(), posting_field)
 
 			qry = Comment.query.filter_by(posting_PostID = id)
 			comments = marshal(qry.all(), comment_field)
 
-			if posts == []:
-				return {'status': 'Post not found!'}, 404
+			if posts["Title"] == None:
+				return {'status':'Post not Found'}, 404
 			
 			else:
 				postComm = {
@@ -134,7 +133,7 @@ class PublicResource(Resource):
 		
 		parser = reqparse.RequestParser()
 		parser.add_argument("p", type= int, location= 'args', default= 1)
-		parser.add_argument("rp", type= int, location= 'args', default= 5)
+		parser.add_argument("rp", type= int, location= 'args', default= 25)
 		parser.add_argument("PostID",type= int, help= 'PostID must be an integer', location= 'args')
 		parser.add_argument("Title",type= str, help= 'Title must be string type', location= 'args')
 		parser.add_argument("Likes",type= str, help= 'Likes must be an integer', location= 'args')
@@ -209,18 +208,15 @@ class PostResource(Resource):
 	def get(self,id = None):
 		current_user = get_jwt_identity()
 
-		ans = {}
-		ans["status"] = "SUCCESS"
-		rows = []
-
 		if(id != None):
-			qry = Posting.query.filter_by(user_UserID = current_user, PostID = id).first()
-			posts = marshal(qry.all(), posting_field)
+			qry = Posting.query.filter_by(user_UserID = current_user)
+			qry = qry.filter_by(PostID = id)
+			posts = marshal(qry.first(), posting_field)
 			
 			qry = Comment.query.filter_by(posting_PostID = id)
 			comments = marshal(qry.all(), comment_field)
 
-			if posts == []:
+			if posts["Title"] == None:
 				return {'status': 'Post not found!'}, 404
 
 			else:
@@ -319,164 +315,204 @@ class PostResource(Resource):
 
 		db.session.add(data)
 		db.session.commit()
-
-		return {"status": "SUCCESS"}, 200
+		qry = Posting.query.filter_by( Title= args['Title']).first()
+		rows = marshal(qry,posting_field)
+		return  rows , 200
 
 	@jwt_required
-	def put(self):
+	def put(self, id):
+		current_user = get_jwt_identity()
+
+		data = Posting.query.filter_by(user_UserID = current_user, PostID = id).first()
+
+		if(data == None): 
+			return {'status': 'Post not found!'}, 404
+
 		parser = reqparse.RequestParser()
 		parser.add_argument("Title",type= str, help= 'Title must be string type', location= 'json', required= True)
 		parser.add_argument("PostText",type= str, help= 'PostText must be string type', location= 'json', required= True)
 		parser.add_argument("Url",type= str, help= 'Url must be string type', location= 'json')
 		args = parser.parse_args()
-		current_user = get_jwt_identity()
-
-		Posting.Title=args['Title']
-		Posting.PostText=args['PostText']
-		Posting.Url=args['Url']
-		Posting.user_UserID= current_user
-		db.session.commit()
-		return {"status": "SUCCESS"}, 200
 		
-	@jwt_required
-	def delete(self,id=None):
-		if (id!= None):
-			qry=Posting.query.get(id)
-		else :
-			return {'status':'User not Found'}, 404
-		db.session.delete(qry)
-		db.session.commit()
-		# supaya return item yang hilang
-		qry = Posting.query.all() 
-		rows = marshal(qry,posting_field)
-		return rows , 200
-
-class UserResource(Resource):
-	user_field = {
-		"UserID" : fields.Integer,
-		"Username" : fields.String,
-		"Email" : fields.String,
-		"Password" : fields.String,
-		"Status" : fields.String,
-		"CreatedAt" : fields.String,
-		"UpdatedAt" : fields.String,
-		}
-
-	def get(self,id=None):
-		if (id!= None):
-			qry=User.query.get(id)
-		else :
-			return {'status':'User not Found'}, 404
-		rows = marshal(qry, self.user_field)
-		return rows, 200
-
-	def post(self):
-		parser = reqparse.RequestParser()
-		parser.add_argument('Username', type=str, location = 'json',help= 'Username can\'t null and must be string', required = True)
-		parser.add_argument('Email', type=str, location = 'json', help= 'Email can\'t null and must be string',required = True)
-		parser.add_argument('Password', type=str, location = 'json', help= 'Email can\'t null and must be string', required = True)
-		parser.add_argument('Status', type=str, location = 'json',help= 'Email can\'t null and must be string', required = True)
-		args = parser.parse_args()
-		data = User(Username = args['Username'], Email = args['Email'], Password = args['Password'], Status= args['Status'])
+		if args["Title"] != None:
+			data.Title= args["Title"]
+		if args["PostText"] != None:
+			data.PostText= args["PostText"]
+		if args["Url"] != None:
+			data.Url= args["Url"]
 		
+		data.UpdatedAt = db.func.current_timestamp()
+		data.user_UserID= current_user
+
 		db.session.add(data)
 		db.session.commit()
-		qry = User.query.filter_by(Username = args['Username']).first()
-		rows = marshal(qry,self.user_field)
-		return  rows , 200
 
-	def delete(self,id=None):
-		if (id!= None):
-			qry=User.query.get(id)
-		else :
-			return {'status':'User not Found'}, 404
-		db.session.delete(qry)
+		qry = Posting.query.filter_by( Title= args['Title']).first()
+		rows = marshal(qry,posting_field)
+		return  rows, 200
+		
+	@jwt_required
+	def delete(self,id):
+		current_user = get_jwt_identity()
+		data = Posting.query.filter_by(user_UserID = current_user, PostID = id).first()
+
+		if(data == None): 
+			return {'status': 'Post not found!'}, 404
+
+		db.session.delete(data)
 		db.session.commit()
-		qry = User.query.all() # supaya return item yang hilang
-		rows = marshal(qry,self.user_field)
-		return rows , 200
+		return { 'Status': "Your post has been deleted!"} , 200
 
-	def put(self,id=None):
+class UserResource(Resource):
+	
+	def get(self,id=None):
+		if (id!= None):
+			qry=User.query.filter_by(UserID = id)
+
+			rows = marshal(qry.first(), user_field)
+			if rows["Username"] == None:
+				return {'status':'User not Found'}, 404
+			else:
+				return rows,200
+		
+		qry=User.query
+		rows = marshal(qry.all(), user_field)
+		return rows,200
+
+	# def post(self):
+	# 	parser = reqparse.RequestParser()
+	# 	parser.add_argument('Username', type=str, location = 'json',help= 'Username can\'t null and must be string', required = True)
+	# 	parser.add_argument('Email', type=str, location = 'json', help= 'Email can\'t null and must be string',required = True)
+	# 	parser.add_argument('Password', type=str, location = 'json', help= 'Email can\'t null and must be string', required = True)
+	# 	parser.add_argument('Status', type=str, location = 'json',help= 'Email can\'t null and must be string', required = True)
+	# 	args = parser.parse_args()
+	# 	data = User(Username = args['Username'], Email = args['Email'], Password = args['Password'], Status= args['Status'])
+		
+	# 	db.session.add(data)
+	# 	db.session.commit()
+	# 	qry = User.query.filter_by(Username = args['Username']).first()
+	# 	rows = marshal(qry,user_field)
+	# 	return  rows , 200
+
+	@jwt_required
+	def delete(self,id):
+		current_user = get_jwt_identity()
+		qry = User.query.filter_by(UserID = current_user)
+		data = qry.filter_by(UserID = id).first()
+
+		if(data == None): 
+			return {'status': 'User not found!'}, 404
+
+		db.session.delete(data)
+		db.session.commit()
+		return { 'Status': "Your account has been deleted" } , 200
+
+
+	@jwt_required
+	def put(self,id):
+		current_user = get_jwt_identity()
+		qry = User.query.filter_by(UserID = current_user)
+		data = qry.filter_by(UserID = id).first()
+
+		if(data == None): 
+			return {'status': 'User not found!'}, 404
+
 		parser = reqparse.RequestParser()
 		parser.add_argument('Username', type=str, location = 'json',help= 'Username can\'t null and must be string' )
 		parser.add_argument('Email', type=str, location = 'json', help= 'Email can\'t null and must be string')
 		parser.add_argument('Password', type=str, location = 'json', help= 'Email can\'t null and must be string')
-		parser.add_argument('Status', type=str, location = 'json',help= 'Email can\'t null and must be string')
 		args = parser.parse_args()
-		qry = User.query.filter_by(UserID = id).first()
-		if args['Username'] != "":
-			qry.Username = args['Username']
-		if args['Email'] != "":
-			qry.Email = args['Email']
-		if args['Password'] != "":
-			qry.Password = args['Password']
-		if args['Status'] != "":
-			qry.Status = args['Status']
+
+		if args['Username'] != None:
+			data.Username = args['Username']
+		if args['Email'] != None:
+			data.Email = args['Email']
+		if args['Password'] != None:
+			data.Password = args['Password']
 		
 		# Time stamp untuk Update
-		qry.UpdatedAt= db.func.current_timestamp()
+		data.UpdatedAt= db.func.current_timestamp()
 		db.session.commit()
-		rows = marshal(qry,self.user_field)
+
+		qry = User.query.filter_by(UserID = current_user).first()
+		rows = marshal(qry,user_field)
 		return  rows , 200
 
 class CommentResource(Resource):
-	def get(self, id=None):
-		if (id!= None):
-			qry=Comment.query.get(id)
-		else :
+	def get(self, id):
+		qry=Comment.query.filter_by(CommentID = id)
+
+		rows = marshal(qry.first(), comment_field)
+		if rows["CommentText"] == None:
 			return {'status':'Comment not Found'}, 404
-		rows = marshal(qry, comment_field)
-		return rows, 200
+		else:
+			return rows,200
 
 	@jwt_required
 	def post(self):
+		current_user = get_jwt_identity()
+
 		parser = reqparse.RequestParser()
 		parser.add_argument('CommentText', type=str, location = 'json',help= 'CommentText can\'t null and must be string', required = True)
 		parser.add_argument('UrlComm', type=str, location = 'json', help= 'UrlComm can\'t null and must be string')
-		parser.add_argument('Likes', type=int, location = 'json', help= ' can\'t null and must be string')
-		parser.add_argument('Hoax', type=int, location = 'json',help= 'UrlComm can\'t null and must be string', required = True)
-		parser.add_argument('user_UserID', type=int, location = 'json', help= ' can\'t null and must be string' , required=True)
+		parser.add_argument('Hoax', type=int, location = 'json',help= 'UrlComm can\'t null and must be integer type', required = True)
 		parser.add_argument('posting_PostID', type=int, location = 'json',help= 'UrlComm can\'t null and must be string', required = True)
 		args = parser.parse_args()
-		data = Comment(CommentText = args['CommentText'], UrlComm = args['UrlComm'], \
-		Likes = args['Likes'], Hoax= args['Hoax'],\
-		user_UserID = args['user_UserID'], posting_PostID= args['posting_PostID'])
+
+		data = Comment(
+			CommentText = args['CommentText'],
+			UrlComm = args['UrlComm'],
+			Hoax= args['Hoax'],
+			user_UserID = current_user,
+			posting_PostID= args['posting_PostID']
+			)
+		
 		db.session.add(data)
 		db.session.commit()
-		qry = Comment.query.filter_by(user_UserID = args['user_UserID'], posting_PostID= args['posting_PostID']).first()
+		qry = Comment.query.filter_by(user_UserID = current_user, posting_PostID= args['posting_PostID']).first()
 		rows = marshal(qry,comment_field)
 		return  rows , 200
 
-	def delete(self,id=None):
-		if (id!= None):
-			qry=Comment.query.get(id)
-		else :
-			return {'status':'User not Found'}, 404
-		db.session.delete(qry)
-		db.session.commit()
-		qry = Comment.query.all() # supaya return item yang hilang
-		rows = marshal(qry,comment_field)
-		return rows , 200
+	@jwt_required
+	def delete(self,id):
+		current_user = get_jwt_identity()
+		data = Comment.query.filter_by(user_UserID = current_user, CommentID = id).first()
 
-	def put(self,id=None):
+		if(data == None): 
+			return {'status': 'Comment not found!'}, 404
+
+		db.session.delete(data)
+		db.session.commit()
+		return { 'status': "Your comment has been deleted" } , 200
+
+	@jwt_required
+	def put(self,id):
+		current_user = get_jwt_identity()
+		data = Comment.query.filter_by(user_UserID = current_user, CommentID = id).first()
+
+		if(data == None): 
+			return {'status': 'Comment not found!'}, 404
+
 		parser = reqparse.RequestParser()
 		parser.add_argument('CommentText', type=str, location = 'json',help= 'CommentText can\'t null and must be string')
 		parser.add_argument('UrlComm', type=str, location = 'json', help= 'UrlComm can\'t null and must be string')
-		parser.add_argument('Likes', type=int, location = 'json', help= ' can\'t null and must be string')
 		parser.add_argument('Hoax', type=int, location = 'json',help= 'UrlComm can\'t null and must be string')
 		args = parser.parse_args()
-		qry = Comment.query.filter_by(CommentID = id).first()
-		if args['CommentText'] != "":
-			qry.CommentText = args['CommentText']
-		if args['UrlComm'] != "":
-			qry.UrlComm = args['UrlComm']
-		if args['Likes'] != "":
-			qry.Likes = args['Likes']
-		if args['Hoax'] != "":
-			qry.Hoax = args['Hoax']
+
+		if args['CommentText'] != None:
+			data.CommentText = args['CommentText']
+		if args['UrlComm'] != None:
+			data.UrlComm = args['UrlComm']
+		if args['Hoax'] != None:
+			data.Hoax = args['Hoax']
 		# Time stamp untuk Update
-		qry.UpdatedAt= db.func.current_timestamp()
+		data.UpdatedAt= db.func.current_timestamp()
+		data.user_UserID= current_user
+
+		db.session.add(data)
 		db.session.commit()
+
+		qry = Comment.query.filter_by( CommentText= args['CommentText']).first()
 		rows = marshal(qry,comment_field)
 		return  rows , 200
 # ################ Login Resource for take a Token ####################
@@ -497,13 +533,32 @@ class LoginResource(Resource):
 		token = create_access_token(identity= qry.UserID, expires_delta = datetime.timedelta(days=1))
 
 		return {"token": token}, 200
+
+class RegisterResource(Resource):
+
+	def post(self):
+		parser = reqparse.RequestParser()
+		parser.add_argument('Username', type=str, location = 'json',help= 'Username can\'t null and must be string', required = True)
+		parser.add_argument('Email', type=str, location = 'json', help= 'Email can\'t null and must be string',required = True)
+		parser.add_argument('Password', type=str, location = 'json', help= 'Email can\'t null and must be string', required = True)
+		args = parser.parse_args()
+		data = User(Username = args['Username'], Email = args['Email'], Password = args['Password'])
+		
+		db.session.add(data)
+		db.session.commit()
+		qry = User.query.filter_by(Username = args['Username']).first()
+		rows = marshal(qry,user_field)
+		return  rows , 200
+
+
 ###################### Start of Endpoint ##############################
 # Endpoints for Public
 api.add_resource(PublicResource, '/api/public/posts','/api/public/post/<int:id>')
 api.add_resource(PostResource, '/api/users/posts', '/api/users/post/<int:id>')
-api.add_resource(UserResource, '/api/user/<int:id>','/api/signup','/api/user/delete/<int:id>')
+api.add_resource(UserResource, '/api/users', '/api/user/<int:id>')
 api.add_resource(LoginResource, '/api/login')
-api.add_resource(CommentResource, '/api/comment/<int:id>','/api/comment','/api/comment/delete/<int:id>')
+api.add_resource(RegisterResource, '/api/signup')
+api.add_resource(CommentResource, '/api/comment/<int:id>','/api/comment')
 ############ Finish of Endpoint ##########################################
 
 ########### Handling override Message for consistently ##############
