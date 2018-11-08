@@ -1,202 +1,6 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-######################## WILAYAH KERJA ZACK #########################
-################ Login Resource for take a Token ####################
-# class LoginResource(Resource):
-class LoginResource(Resource):
-	def post(self):
-		parser = reqparse.RequestParser()
-		parser.add_argument('secret', location='json', required = True)
-		args = parser.parse_args()
-		qry = SignUp.query.filter_by(secret=args['secret']).first()
-		if qry is None:
-			return {'status':'UNAUTHORIZED'}, 401
-		token = create_access_token(identity=qry.secret, expires_delta = datetime.timedelta(days=1))
-		return {'token':token}, 200
-###################### Start of Endpoint ##############################
-
-
-
-
-
-
-
-############ Finish of Endpoint ##########################################
-
-########### Handling override Message for consistently ##############
-@jwt.expired_token_loader
-def my_expired_token_callback():
-	return json.dumps({"message":"EXPIRED TOKEN"})\
-	,401 \
-	,{'Content-Type': 'application/json'}
-
-# ###################### Handling Userclaim in Payload ###################
-@jwt.user_claims_loader
-def add_claim(identity):
-	qry = SignUp.query.filter_by(secret=identity).first()
-	val = qry.types
-	val2 = qry.sign_id
-	return { 'type': val, 'sign_id':val2}
-@jwt.unauthorized_loader
-def unathorized_message(error_string):
-	return json.dumps({'message': error_string}), 401, {'Content-Type': 'application/json'}
-
-if __name__ == '__main__':
-	try:
-		if  sys.argv[1] == 'db':
-			manager.run()
-		else:
-			app.run(debug=True, host = '0.0.0.0', port = 5000)
-	except  IndexError as p:
-		app.run(debug=True, host = '0.0.0.0', port = 5000)
 #################################################################
+
+#########################  IMPORT TOOLS #########################
 from flask import Flask
 # from flask_cors import CORS
 from flask_restful import Resource, Api, reqparse, marshal, fields
@@ -217,7 +21,8 @@ Base = declarative_base()
 
 app = Flask(__name__)
 # CORS(app, resources={r"*": {"origin" : "*"}})
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://username:password@127.0.0.1/terangin'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://username:password@127.0.0.1/terangin_BE'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:terangin123@terangin.cldtouwshewk.ap-southeast-1.rds.amazonaws.com:3306/terangin'
 app.config['JWT_SECRET_KEY'] = 'terangin-secret-key'
 
 
@@ -252,20 +57,22 @@ def user_required(fn):
     return wrapper
 
 
-UserPost = db.Table('UserPost',
-    db.Column('User_UserID', db.Integer, db.ForeignKey('user.UserID'), primary_key=True),
-    db.Column('Posting_PostID', db.Integer, db.ForeignKey('posting.PostID'), primary_key=True)
-)
+#########################  MODEL DECLARATION #########################
 
-UserCom = db.Table('UserCom',
-    db.Column('User_UserID', db.Integer, db.ForeignKey('user.UserID'), primary_key=True),
-    db.Column('Comment_CommentID', db.Integer, db.ForeignKey('comment.CommentID'), primary_key=True)
-)
+# UserPost = db.Table('UserPost',
+#     db.Column('User_UserID', db.Integer, db.ForeignKey('user.UserID'), primary_key=True),
+#     db.Column('Posting_PostID', db.Integer, db.ForeignKey('posting.PostID'), primary_key=True)
+# )
 
-PostCom = db.Table('PostCom',
-    db.Column('Posting_PostID', db.Integer, db.ForeignKey('posting.PostID'), primary_key=True),
-    db.Column('Comment_CommentID', db.Integer, db.ForeignKey('comment.CommentID'), primary_key=True)
-)
+# UserCom = db.Table('UserCom',
+#     db.Column('User_UserID', db.Integer, db.ForeignKey('user.UserID'), primary_key=True),
+#     db.Column('Comment_CommentID', db.Integer, db.ForeignKey('comment.CommentID'), primary_key=True)
+# )
+
+# PostCom = db.Table('PostCom',
+#     db.Column('Posting_PostID', db.Integer, db.ForeignKey('posting.PostID'), primary_key=True),
+#     db.Column('Comment_CommentID', db.Integer, db.ForeignKey('comment.CommentID'), primary_key=True)
+# )
 
 class User(db.Model):
     UserID = db.Column(db.Integer, primary_key= True)
@@ -275,6 +82,8 @@ class User(db.Model):
     Status = db.Column(db.String(50))
     CreatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
     UpdatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
+    postings = db.relationship('Posting', backref='person', lazy=True)
+    comments = db.relationship('Comment', backref='person', lazy=True)
 
     def __repr__(self):
         return '<User %r>' % self.UserID
@@ -283,9 +92,10 @@ class Posting(db.Model):
     PostID = db.Column(db.Integer, primary_key = True)
     PostText = db.Column(db.Text, nullable = False)
     Likes = db.Column(db.Integer, default = 0)
-    createdAt = db.Column(db.DateTime, default= db.func.current_timestamp())
-    updatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
-    UserPost = db.relationship('User', secondary=UserPost, lazy='subquery', backref=db.backref('postings', lazy=True))
+    CreatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
+    UpdatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
+    # UserPost = db.relationship('User', secondary=UserPost, lazy='subquery', backref=db.backref('postings', lazy=True))
+    user_UserID = db.Column(db.Integer, db.ForeignKey('user.UserID'), nullable=False)
 
     def __repr__(self):
         return '<Posting %r>' % self.PostID
@@ -294,27 +104,103 @@ class Comment(db.Model):
     CommentID = db.Column(db.Integer, primary_key = True)
     CommentText = db.Column(db.Text, nullable = False)
     Likes = db.Column(db.Integer, default = 0)
-    createdAt = db.Column(db.DateTime, default= db.func.current_timestamp())
-    updatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
-    UserCom = db.relationship('User', secondary=UserCom, lazy='subquery', backref=db.backref('comments', lazy=True))
-    PostCom = db.relationship('Post', secondary=PostCom, lazy='subquery', backref=db.backref('comments', lazy=True))
+    CreatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
+    UpdatedAt = db.Column(db.DateTime, default= db.func.current_timestamp())
+    # UserCom = db.relationship('User', secondary=UserCom, lazy='subquery', backref=db.backref('comments', lazy=True))
+    # PostCom = db.relationship('Post', secondary=PostCom, lazy='subquery', backref=db.backref('comments', lazy=True))
+    user_UserID = db.Column(db.Integer, db.ForeignKey('user.UserID'), nullable=False)
+    posting_PostID = db.Column(db.Integer, db.ForeignKey('posting.PostID'), nullable=False)
+
 
     def __repr__(self):
         return '<Comment %r>' % self.CommentID
 
 
+#########################  CRUD  #########################
 
+class PublicResource(Resource):
+    posting_field = {
+        "PostID" : fields.Integer,
+        "PostText" : fields.String,
+        "Likes" : fields.Integer,
+        "CreatedAt" : fields.String,
+        "UpdatedAt" : fields.String,
+        "user_UserID" : fields.Integer
+    }
 
+    def get(self, id = None):
+        if(id != None):
+            qry = User.query.get(UserID = id)
+            if(qry == None):
+                return {'status': 'Post not found!'}, 404
+            ans = {
+                "page": 1,
+                "total_page": 1,
+                "per_page": 25,
+                "data": []
+            }
 
+            rows = marshal(qry, self.posting_field)
+            ans["data"] = rows
+            return ans, 200
+        
+        parser = reqparse.RequestParser()
+        parser.add_argument("p", type= int, location= 'args', default= 1)
+        parser.add_argument("rp", type= int, location= 'args', default= 25)
+        parser.add_argument("PostID",type= int, help= 'PostID must be an integer', location= 'args')
+        parser.add_argument("Likes",type= str, help= 'Likes must be an integer', location= 'args')
+        parser.add_argument("orderBy", help= 'invalid orderBy', location= 'args', choices=('PostID', 'Likes', 'CreatedAt', 'UpdatedAt'))
+        parser.add_argument("sort", help= 'invalid sort value', location= 'args', choices=('asc', 'desc'), default = 'asc')
 
+        args = parser.parse_args()
 
+        qry = Posting.query
 
+        if args['p'] == 1:
+            offset = 0
+        else:
+            offset = (args['p'] * args['rp']) - args['rp']
+ 
+        if args["PostID"] != None:
+            qry = qry.filter_by(PostID = args["PostID"]) 
+        if args["Likes"] != None:
+            qry = qry.filter_by(Likes = args["Likes"])
+        
+        if args['orderBy'] != None:
 
+            if args["orderBy"] == "Likes":
+                field_sort = Posting.Likes
+            elif args["orderBy"] == "category":
+                field_sort = Posting.category
+            elif args["orderBy"] == "CreatedAt":
+                field_sort = Posting.CreatedAt
+            elif args["orderBy"] == "UpdatedAt":
+                field_sort = Posting.UpdatedAt
 
+            if args['sort'] == 'desc':
+                qry = qry.order_by(desc(field_sort))
+               
+            else:
+                qry = qry.order_by(field_sort)
 
+            rows= qry.count()
+            qry =  qry.limit(args['rp']).offset(offset)
+            tp = math.ceil(rows / args['rp'])
+            
+            ans = {
+                "page": args['p'],
+                "total_page": tp,
+                "per_page": args['rp'],
+                "data": []
+            }
 
+            rows = []
+            for row in qry.all():
+                rows.append(marshal(row, self.posting_field))
 
+            ans["data"] = rows
 
+            return ans, 200
 
 
 
@@ -440,7 +326,6 @@ class Comment(db.Model):
 
 
 
-############################################################################################
 
 
 
@@ -457,15 +342,56 @@ class Comment(db.Model):
 
 
 
+# ######################## WILAYAH KERJA ZACK #########################
+# ################ Login Resource for take a Token ####################
+# # class LoginResource(Resource):
+# class LoginResource(Resource):
+# 	def post(self):
+# 		parser = reqparse.RequestParser()
+# 		parser.add_argument('secret', location='json', required = True)
+# 		args = parser.parse_args()
+# 		qry = SignUp.query.filter_by(secret=args['secret']).first()
+# 		if qry is None:
+# 			return {'status':'UNAUTHORIZED'}, 401
+# 		token = create_access_token(identity=qry.secret, expires_delta = datetime.timedelta(days=1))
+# 		return {'token':token}, 200
+###################### Start of Endpoint ##############################
 
 
 
 
 
+# Endpoints for Public
+api.add_resource(PublicResource, '/api/public/posts', '/api/public/post/<int:id>' )
 
+############ Finish of Endpoint ##########################################
 
+# ########### Handling override Message for consistently ##############
+# @jwt.expired_token_loader
+# def my_expired_token_callback():
+# 	return json.dumps({"message":"EXPIRED TOKEN"})\
+# 	,401 \
+# 	,{'Content-Type': 'application/json'}
 
+# # ###################### Handling Userclaim in Payload ###################
+# @jwt.user_claims_loader
+# def add_claim(identity):
+# 	qry = SignUp.query.filter_by(secret=identity).first()
+# 	val = qry.types
+# 	val2 = qry.sign_id
+# 	return { 'type': val, 'sign_id':val2}
+# @jwt.unauthorized_loader
+# def unathorized_message(error_string):
+# 	return json.dumps({'message': error_string}), 401, {'Content-Type': 'application/json'}
 
+# # if __name__ == '__main__':
+# # 	try:
+# # 		if  sys.argv[1] == 'db':
+# # 			manager.run()
+# # 		else:
+# # 			app.run(debug=True, host = '0.0.0.0', port = 5000)
+# # 	except  IndexError as p:
+# # 		app.run(debug=True, host = '0.0.0.0', port = 5000)
 
 
 
@@ -478,7 +404,173 @@ class Comment(db.Model):
 
 
 
-###################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ############################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ###################################################
 
 if __name__ == "__main__":
     try:
